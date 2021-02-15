@@ -7,6 +7,9 @@ using Microsoft.Extensions.Logging;
 
 namespace api31.Controllers
 {
+    /// <summary>
+    /// tempo
+    /// </summary>
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
@@ -23,6 +26,10 @@ namespace api31.Controllers
             _logger = logger;
         }
 
+        /// <summary>
+        /// Tempo
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
@@ -36,11 +43,15 @@ namespace api31.Controllers
             .ToArray();
         }
 
+        /// <summary>
+        /// Versao
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Route("version")]
-        public string getVersion()
+        public IActionResult getVersion()
         {
-            return "3.1";
+            return Ok("3.1");
         }
     }
 }

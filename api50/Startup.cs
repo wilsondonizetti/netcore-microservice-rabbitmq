@@ -11,6 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using System.IO.Compression;
+using Microsoft.AspNetCore.ResponseCompression;
+using Newtonsoft.Json;
 
 namespace api50
 {
@@ -32,6 +35,20 @@ namespace api50
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "api50", Version = "v1" });
             });
+
+            services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal);
+            services.AddResponseCompression();
+
+            services.AddHttpClient();
+
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Latest);
+
+            services.AddControllers()
+                    .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore)
+                    .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,19 +56,25 @@ namespace api50
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "api50 v1"));
+                app.UseDeveloperExceptionPage();               
             }
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "api50 v1"));
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
+                //endpoints.MapSwagger("/help/{documentName}/docs.json");
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
                 endpoints.MapControllers();
             });
         }

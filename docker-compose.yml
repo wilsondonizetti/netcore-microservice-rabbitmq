@@ -21,3 +21,15 @@ services:
     ports:
       - 5672:5672
       - 15672:15672
+  webApi31:
+    image: webapi31
+    ports:
+      - "8000:8080"
+    depends_on:
+      - "rabbitmq"
+  webApi50:
+    image: webapi50
+    ports:
+      - "8002:8080"
+    depends_on:
+      - "rabbitmq"

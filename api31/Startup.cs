@@ -1,4 +1,5 @@
 using System;
+using System.IO.Compression;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,6 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Newtonsoft.Json;
+using Microsoft.AspNetCore.ResponseCompression;
+
 
 namespace api31
 {
@@ -32,6 +36,20 @@ namespace api31
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "api31", Version = "v1" });
             });
+
+            services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Optimal);
+            services.AddResponseCompression();
+
+            services.AddHttpClient();
+
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Latest);
+
+            services.AddControllers()
+                    .AddNewtonsoftJson(options => options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore)
+                    .AddJsonOptions(x => x.JsonSerializerOptions.IgnoreNullValues = true);
+
+            services.AddCors();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -40,18 +58,35 @@ namespace api31
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "api31 v1"));
             }
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "api31 v1"));
+
+            #region Global Cors
+
+            app.UseCors(x => x.AllowAnyOrigin()
+                              .AllowAnyMethod()
+                              .AllowAnyHeader()
+                              .SetIsOriginAllowed(c => true)
+                              .WithOrigins("*")
+                              .AllowCredentials());
+
+            #endregion    
 
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {
+                //endpoints.MapSwagger("/help/{documentName}/docs.json");
+                endpoints.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");                
                 endpoints.MapControllers();
             });
         }
