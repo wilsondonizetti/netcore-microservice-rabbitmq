@@ -30,6 +30,13 @@ namespace api50
         public void ConfigureServices(IServiceCollection services)
         {
 
+            services.AddLogging(logging=>{
+                logging.ClearProviders();
+                logging.AddConsole();
+                logging.AddDebug();                
+            });
+            services.AddTransient<RabbitMQService>();
+            services.AddHostedService<RabbitMQConsumerService>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {

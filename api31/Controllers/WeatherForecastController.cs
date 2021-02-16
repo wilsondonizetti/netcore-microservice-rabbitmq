@@ -49,9 +49,23 @@ namespace api31.Controllers
         /// <returns></returns>
         [HttpGet]
         [Route("version")]
-        public IActionResult getVersion()
+        public IActionResult GetVersion()
         {
             return Ok("3.1");
+        }
+
+        [HttpPost]
+        [Route("msg")]
+        public IActionResult PostMessage(string msg,[FromServices]RabbitMQService mqService){
+            try
+            {
+                mqService.PostMessage<string>("mq.teste", msg);
+                return Ok("mensagem postada!");   
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }            
         }
     }
 }

@@ -15,7 +15,6 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.ResponseCompression;
 
-
 namespace api31
 {
     public class Startup
@@ -30,7 +29,13 @@ namespace api31
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddLogging(logging=>{
+                logging.ClearProviders();
+                logging.AddConsole();
+                logging.AddDebug();                
+            });
+            services.AddTransient<RabbitMQService>();
+            services.AddHostedService<RabbitMQConsumerService>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -54,7 +59,7 @@ namespace api31
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
-        {
+        {            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
